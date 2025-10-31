@@ -7,3 +7,4 @@ To Do:
     - Pong
     - encoder
     - HDMI
+    - Help https://www.fpga4fun.com/
