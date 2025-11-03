@@ -1,4 +1,4 @@
-module encoder_test (
+module encoder_test ( //https://digilent.com/reference/pmod/pmodenc/start
     input logic clk,           // System clock
     input logic quadA,         // Encoder channel A
     input logic quadB,         // Encoder channel B
@@ -17,8 +17,8 @@ module encoder_test (
         .quadB(quadB),
         .count(count)
     );
-    
-    // Detect direction based on count changes
+
+    // Detect direction based on count changes // May need to add a offset or make it sign reg to account for negative counts
     always @(posedge clk) begin
         prev_count <= count;
         
