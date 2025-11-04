@@ -1,13 +1,9 @@
 module encoder (
-    clk,
-    count,
-    quadA,
-    quadB
-);
     input logic clk,
     input logic quadA,
     input logic quadB,
     output logic [7:0] count
+);
 
     reg [2:0] quadA_d, quadB_d;
     always_ff @( posedge clk ) begin 
@@ -27,6 +23,8 @@ module encoder (
                 count_reg <= count_reg - 1;
         end
     end
-
+    
+    // Connect internal register to output
+    assign count = count_reg;
 
 endmodule
