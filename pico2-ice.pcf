@@ -7,3 +7,6 @@ set_io --warn-no-port o_logic_1 26
 set_io --warn-no-port o_logic_2 23
 set_io --warn-no-port o_logic_3 21
 set_io --warn-no-port o_logic_0 19
+
+set_io --warn-no-port quadA 19
+set_io --warn-no-port quadB 19

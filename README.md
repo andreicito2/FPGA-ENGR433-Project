@@ -5,6 +5,6 @@ To Do:
  - create files
     - VGA
     - Pong
-    - encoder
+    - encoder https://digilent.com/reference/pmod/pmodenc/start
     - HDMI
-    - Help https://www.fpga4fun.com/
+    - Help https://www.fpga4fun.com/ 
