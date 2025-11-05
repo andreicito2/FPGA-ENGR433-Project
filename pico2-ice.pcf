@@ -8,5 +8,8 @@ set_io --warn-no-port o_logic_2 23
 set_io --warn-no-port o_logic_3 21
 set_io --warn-no-port o_logic_0 19
 
-set_io --warn-no-port quadA 36
-set_io --warn-no-port quadB 32
+# Encoder
+#set_io --warn-no-port quadA 36
+#set_io --warn-no-port quadB 32
+
+# VGA
