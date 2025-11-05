@@ -3,7 +3,7 @@ This is our Project for Digital Design.
 
 To Do:
  - create files
-    - VGA
+    - VGA https://digilent.com/reference/pmod/pmodvga/start
     - Pong
     - encoder https://digilent.com/reference/pmod/pmodenc/start
     - HDMI
