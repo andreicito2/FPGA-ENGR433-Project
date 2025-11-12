@@ -13,3 +13,20 @@ set_io --warn-no-port o_logic_0 19
 #set_io --warn-no-port quadB 32
 
 # VGA
+set_io --warn-no-port VGA_R_0 4 
+set_io --warn-no-port VGA_R_1 2
+set_io --warn-no-port VGA_R_2 45
+set_io --warn-no-port VGA_R_3 47
+
+set_io --warn-no-port VGA_G_0 43
+set_io --warn-no-port VGA_G_1 38
+set_io --warn-no-port VGA_G_2 34
+set_io --warn-no-port VGA_G_3 31
+
+set_io --warn-no-port VGA_B_0 3
+set_io --warn-no-port VGA_B_1 44
+set_io --warn-no-port VGA_B_2 46
+set_io --warn-no-port VGA_B_3 48
+
+set_io --warn-no-port vga_h_sync 42
+set_io --warn-no-port vga_v_sync 36
