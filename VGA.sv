@@ -1,6 +1,6 @@
 module VGA 
 (
-    input logic clk,               // 146.25 MHz pixel clock for 1680x1050 @ 60Hz
+    input logic clk,               // 25.175 MHz pixel clock for 640x480 @ 60Hz
     output logic VGA_R_0,
     output logic VGA_R_1,
     output logic VGA_R_2,
@@ -17,13 +17,13 @@ module VGA
     output logic vga_v_sync
 );
 
-    // 1680x1050 @ 60Hz timing (CVT Reduced Blanking)
-    // Horizontal: 1680 + 104 + 176 + 280 = 2240 total
-    // Vertical: 1050 + 1 + 3 + 30 = 1084 total
+    // VGA 640x480 @ 60Hz timing
+    // Horizontal: 640 visible + 16 front + 96 sync + 48 back = 800 total
+    // Vertical: 480 visible + 10 front + 2 sync + 33 back = 525 total
     
     reg [9:0] CounterX;
-    reg [8:0] CounterY;
-    wire CounterXmaxed = (CounterX==768);
+    reg [9:0] CounterY;
+    wire CounterXmaxed = (CounterX == 799);
 
     
     // 4-bit color outputs
@@ -38,23 +38,43 @@ module VGA
         CounterX <= CounterX + 1;
 
     always @(posedge clk)
-    if(CounterXmaxed)
-        CounterY <= CounterY + 1;
+    begin
+        if(CounterXmaxed)
+        begin
+            if(CounterY == 524)
+                CounterY <= 0;
+            else
+                CounterY <= CounterY + 1;
+        end
+    end
         
     reg vga_HS, vga_VS;
     always @(posedge clk)
     begin
-        vga_HS <= (CounterX[9:4]==0);   // active for 16 clocks
-        vga_VS <= (CounterY==0);   // active for 768 clocks
+        vga_HS <= (CounterX >= 656) && (CounterX < 752);  // 96 clock sync pulse
+        vga_VS <= (CounterY >= 490) && (CounterY < 492);  // 2 line sync pulse
     end
 
     assign vga_h_sync = ~vga_HS;  // Negative polarity
     assign vga_v_sync = ~vga_VS;   // Positive polarity
     
-    // Generate test pattern with 4-bit color depth
-    assign VGA_R = {CounterY[3], CounterY[2], CounterY[1], CounterY[0]} | {4{(CounterX==768)}};
-    assign VGA_G = {CounterX[5] ^ CounterX[6], CounterX[4], CounterX[3], CounterX[2]} | {4{(CounterX==768)}};
-    assign VGA_B = {CounterX[4], CounterX[3], CounterX[2], CounterX[1]} | {4{(CounterX==768)}};
+    // Define visible area - colors should only be output during active video
+    wire inDisplayArea = (CounterX < 640) && (CounterY < 480);
+    
+    // Paddle parameters (Breakout-style bar)
+    parameter PADDLE_WIDTH = 100;   // Width of paddle in pixels
+    parameter PADDLE_HEIGHT = 15;   // Height of paddle in pixels
+    parameter PADDLE_Y = 450;       // Y position (near bottom)
+    parameter PADDLE_X = 270;       // X position (centered at 320, minus half width)
+    
+    // Check if current pixel is on the paddle
+    wire onPaddle = (CounterX >= PADDLE_X) && (CounterX < PADDLE_X + PADDLE_WIDTH) &&
+                    (CounterY >= PADDLE_Y) && (CounterY < PADDLE_Y + PADDLE_HEIGHT);
+    
+    // Generate paddle (white bar) on black background
+    assign VGA_R = (inDisplayArea && onPaddle) ? 4'b1111 : 4'b0000;
+    assign VGA_G = (inDisplayArea && onPaddle) ? 4'b1111 : 4'b0000;
+    assign VGA_B = (inDisplayArea && onPaddle) ? 4'b1111 : 4'b0000;
     
     // Assign individual color bits to output pins
     assign VGA_R_0 = VGA_R[0];
