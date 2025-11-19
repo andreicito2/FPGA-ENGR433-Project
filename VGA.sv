@@ -41,7 +41,7 @@ module VGA
     parameter PADDLE_Y = 450;       // Y position (near bottom)
     reg [9:0] PADDLE_X = 270;        // X position (centered at 320, minus half width)
 
-    parameter BALL_SIZE = 40;
+    parameter BALL_SIZE = 20;
     reg [9:0] BALL_X = 320;
     reg [9:0] BALL_Y = 240;
 
@@ -86,15 +86,32 @@ module VGA
         if (count > prev_count) 
         begin
             PADDLE_X <= PADDLE_X + 2;  // Move paddle right
+            if (PADDLE_X < 0)
+                PADDLE_X <= 0;
+            else if (PADDLE_X > (640 - PADDLE_WIDTH))
+                PADDLE_X <= 640 - PADDLE_WIDTH;
             led_green <= 1'b0;  // Turn on green LED for right
             led_red <= 1'b1;
         end
         else if (count < prev_count) 
         begin
             PADDLE_X <= PADDLE_X - 2;  // Move paddle left
+            if (PADDLE_X < 0)
+                PADDLE_X <= 640 - PADDLE_WIDTH;
+            else if (PADDLE_X > (640 - PADDLE_WIDTH))
+                PADDLE_X <= 0;
+
             led_green <= 1'b1;  // Turn off green LED
             led_red <= 1'b0;
         end
+    end
+
+    always @(posedge clk)
+    begin
+        if (BALL_X <0 || BALL_X > (640 - BALL_SIZE))
+            BALL_X <= BALL_X;
+        else
+            BALL_X <= BALL_X + 1;
     end
 
     assign vga_h_sync = ~vga_HS;  // Negative polarity
@@ -108,10 +125,21 @@ module VGA
     wire ballArea = (CounterX >= BALL_X) && (CounterX < BALL_X + BALL_SIZE) &&
                     (CounterY >= BALL_Y) && (CounterY < BALL_Y + BALL_SIZE);
     
-    // Generate paddle (white bar) on black background
-    assign VGA_R = (inDisplayArea && onPaddle) ? 4'b1111 : 4'b0000;
-    assign VGA_G = (inDisplayArea && onPaddle) ? 4'b1111 : 4'b0000;
-    assign VGA_B = (inDisplayArea && onPaddle) ? 4'b1111 : 4'b0000;
+    // // Generate paddle (white bar) on black background
+    // assign VGA_R = (inDisplayArea && onPaddle) ? 4'b1111 : 4'b0000;
+    // assign VGA_G = (inDisplayArea && onPaddle) ? 4'b1111 : 4'b0000;
+    // assign VGA_B = (inDisplayArea && onPaddle) ? 4'b1111 : 4'b0000;
+
+
+    // Combine paddle and ball rendering (both white on black)
+    wire paddle_on = inDisplayArea && onPaddle;
+    wire ball_on   = inDisplayArea && ballArea;
+    wire object_on = paddle_on || ball_on;
+
+    assign VGA_R = object_on ? 4'b1111 : 4'b0000;
+    assign VGA_G = object_on ? 4'b1111 : 4'b0000;
+    assign VGA_B = object_on ? 4'b1111 : 4'b0000;
+
     
     // Assign individual color bits to output pins
     assign VGA_R_0 = VGA_R[0];
