@@ -1,3 +1,4 @@
+//code to test only ball physics
 module VGA 
 (
     input logic clk,               // 25.175 MHz pixel clock for 640x480 @ 60Hz
