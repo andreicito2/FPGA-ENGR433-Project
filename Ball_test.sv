@@ -42,9 +42,15 @@ module VGA
     parameter PADDLE_Y = 450;       // Y position (near bottom)
     reg [9:0] PADDLE_X = 270;        // X position (centered at 320, minus half width)
 
+    //Ball parameters
     parameter BALL_SIZE = 20;
     reg [9:0] BALL_X = 320;
     reg [9:0] BALL_Y = 240;
+
+    //Ball velocity
+    logic signed [9:0] BALL_VX = -1;
+    logic signed [9:0] BALL_VY = -1;
+    wire frame_tick = (CounterXmaxed && (CounterY == 524));
 
     encoder uut (
         .clk(clk),
@@ -107,6 +113,42 @@ module VGA
         end
     end
 
+    always @(posedge clk)
+    begin
+        if (frame_tick) begin
+            // move ball
+            BALL_X <= BALL_X + BALL_VX;
+            BALL_Y <= BALL_Y + BALL_VY;
+
+            // bounce off left/right walls
+            if (BALL_X <= 0 || BALL_X + BALL_SIZE >= 640) begin
+                BALL_VX <= -BALL_VX;
+                if (BALL_X <= 0)
+                    BALL_X <= BALL_X + 1;
+
+                if (BALL_X + BALL_SIZE >= 640)
+                    BALL_X <= BALL_X - 1;
+                
+                
+            end
+
+            // bounce off top wall
+            if (BALL_Y <= 0) 
+            begin
+                BALL_VY <= -BALL_VY;
+                BALL_Y <= BALL_Y + 1;
+                BALL_X <= BALL_X + 1;
+
+            end
+
+            if ((BALL_Y + BALL_SIZE >= PADDLE_Y) && (BALL_Y + BALL_SIZE <= PADDLE_Y + PADDLE_HEIGHT) && (BALL_X + BALL_SIZE > PADDLE_X) && (BALL_X < PADDLE_X + PADDLE_WIDTH)) begin
+                BALL_VY <= -BALL_VY;
+                BALL_X <= BALL_X - 1;
+                BALL_Y <= BALL_Y - 1;
+            end
+        end
+    end
+    
 
     assign vga_h_sync = ~vga_HS;  // Negative polarity
     assign vga_v_sync = ~vga_VS;   // Positive polarity

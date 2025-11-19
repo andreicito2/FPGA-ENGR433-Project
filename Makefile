@@ -1,5 +1,5 @@
 TOP_MODULE := VGA
-SRCS := VGA.sv encoder.sv
+SRCS := Ball_test.sv encoder.sv
 PCF := pico2-ice.pcf
 JSON := $(TOP_MODULE).json
 ASC := $(TOP_MODULE).asc
