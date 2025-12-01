@@ -36,11 +36,11 @@ module VGA
     // Define visible area - colors should only be output during active video
     wire inDisplayArea = (CounterX < 640) && (CounterY < 480);
     
-    // Paddle parameters (Breakout-style bar)
-    parameter PADDLE_WIDTH = 100;   // Width of paddle in pixels
-    parameter PADDLE_HEIGHT = 15;   // Height of paddle in pixels
-    parameter PADDLE_Y = 450;       // Y position (near bottom)
-    reg [9:0] PADDLE_X = 270;        // X position (centered at 320, minus half width)
+    // Paddle parameters (Pong-style vertical bar)
+    parameter PADDLE_WIDTH = 15;    // Width of paddle in pixels
+    parameter PADDLE_HEIGHT = 100;  // Height of paddle in pixels
+    parameter PADDLE_X = 20;        // X position (left side)
+    reg [9:0] PADDLE_Y = 190;       // Y position (centered at 240, minus half height)
 
     //Ball parameters
     parameter BALL_SIZE = 20;
@@ -96,21 +96,21 @@ module VGA
         prev_count <= count;
         if (count > prev_count) 
         begin
-            PADDLE_X <= PADDLE_X + 3;  // Move paddle right
-            if (PADDLE_X < 0)
-                PADDLE_X <= 0;
-            else if (PADDLE_X > (640 - PADDLE_WIDTH))
-                PADDLE_X <= 640 - PADDLE_WIDTH;
-            led_green <= 1'b0;  // Turn on green LED for right
+            PADDLE_Y <= PADDLE_Y - 3;  // Move paddle up
+            if (PADDLE_Y < 0)
+                PADDLE_Y <= 0;
+            else if (PADDLE_Y > (480 - PADDLE_HEIGHT ))
+                PADDLE_Y <= 480 - PADDLE_HEIGHT ;
+            led_green <= 1'b0;  // Turn on green LED for up
             led_red <= 1'b1;
         end
         else if (count < prev_count) 
         begin
-            PADDLE_X <= PADDLE_X - 3;  // Move paddle left
-            if (PADDLE_X < 0)
-                PADDLE_X <= 640 - PADDLE_WIDTH;
-            else if (PADDLE_X > (640 - PADDLE_WIDTH))
-                PADDLE_X <= 0;
+            PADDLE_Y <= PADDLE_Y + 3;  // Move paddle down
+            if (PADDLE_Y < 0)
+                PADDLE_Y <= 0;
+            else if (PADDLE_Y > (480 - PADDLE_HEIGHT))
+                PADDLE_Y <= 480 - PADDLE_HEIGHT;
 
             led_green <= 1'b1;  // Turn off green LED
             led_red <= 1'b0;
@@ -129,10 +129,21 @@ module VGA
             begin
                 BALL_VX <= -BALL_VX;
                 if (BALL_X <= 0)
-                    BALL_X <= BALL_X + 1;
-
+                begin
+                    BALL_VY <= -1;
+                    BALL_VX <= 1;
+                    BALL_Y <= 240;
+                    BALL_X <= 320;
+                    scoretop <= 0;
+                end
                 if (BALL_X + BALL_SIZE >= 640)
-                    BALL_X <= BALL_X - 1;
+                begin
+                    BALL_VY <= -1;
+                    BALL_VX <= -1;
+                    BALL_Y <= 240;
+                    BALL_X <= 320;
+                    scoretop <= 0;
+                end
             end
 
             // bounce off top wall/bottom (reset)
@@ -143,21 +154,20 @@ module VGA
                     BALL_Y <= BALL_Y + 1;
                 if (BALL_Y + BALL_SIZE >= 480)
                 begin
+                    BALL_Y <= BALL_Y - 1;
                     BALL_VY <= -1;
-                    BALL_VX <= -1;
-                    BALL_Y <= 240;
-                    BALL_X <= 320;
-                    scoretop <= scoretop + 1;
                 end
 
             end
 
 
-            if ((BALL_Y + BALL_SIZE >= PADDLE_Y) && (BALL_Y + BALL_SIZE <= PADDLE_Y + PADDLE_HEIGHT) && (BALL_X + BALL_SIZE > PADDLE_X) && (BALL_X < PADDLE_X + PADDLE_WIDTH)) 
+            // Collision with left paddle
+            if ((BALL_X <= PADDLE_X + PADDLE_WIDTH) && (BALL_X + BALL_SIZE >= PADDLE_X) && (BALL_Y + BALL_SIZE > PADDLE_Y) && (BALL_Y < PADDLE_Y + PADDLE_HEIGHT)) 
             begin
-                BALL_VY <= -BALL_VY;
-                BALL_X <= BALL_X - 1;
+                BALL_VX <= -BALL_VX;
+                BALL_X <= BALL_X + 1;
                 BALL_Y <= BALL_Y - 1;
+                scoretop <= scoretop + 1;
             end
         end
     end

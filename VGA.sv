@@ -85,21 +85,21 @@ module VGA
         prev_count <= count;
         if (count > prev_count) 
         begin
-            PADDLE_X <= PADDLE_X + 2;  // Move paddle right
-            if (PADDLE_X < 0)
-                PADDLE_X <= 0;
-            else if (PADDLE_X > (640 - PADDLE_WIDTH))
-                PADDLE_X <= 640 - PADDLE_WIDTH;
+            PADDLE_Y <= PADDLE_Y + 2;  // Move paddle right
+            if (PADDLE_Y < 0)
+                PADDLE_Y <= 0;
+            else if (PADDLE_Y > (480 - PADDLE_HEIGHT))
+                PADDLE_Y <= 480 - PADDLE_HEIGHT;
             led_green <= 1'b0;  // Turn on green LED for right
             led_red <= 1'b1;
         end
         else if (count < prev_count) 
         begin
-            PADDLE_X <= PADDLE_X - 2;  // Move paddle left
-            if (PADDLE_X < 0)
-                PADDLE_X <= 640 - PADDLE_WIDTH;
-            else if (PADDLE_X > (640 - PADDLE_WIDTH))
-                PADDLE_X <= 0;
+            PADDLE_Y <= PADDLE_Y - 2;  // Move paddle left
+            if (PADDLE_Y < 0)
+                PADDLE_Y <= 0;
+            else if (PADDLE_Y > (480 - PADDLE_HEIGHT))
+                PADDLE_Y <= 480 - PADDLE_HEIGHT;
 
             led_green <= 1'b1;  // Turn off green LED
             led_red <= 1'b0;
