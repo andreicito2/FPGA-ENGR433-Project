@@ -47,6 +47,10 @@ module VGA
     reg [9:0] BALL_X = 320;
     reg [9:0] BALL_Y = 240;
 
+    //Score
+    reg [7:0] scoretop = 0;
+    reg [7:0] scorebottom = 0;
+
     //Ball velocity
     logic signed [9:0] BALL_VX = -1;
     logic signed [9:0] BALL_VY = -1;
@@ -92,7 +96,7 @@ module VGA
         prev_count <= count;
         if (count > prev_count) 
         begin
-            PADDLE_X <= PADDLE_X + 2;  // Move paddle right
+            PADDLE_X <= PADDLE_X + 3;  // Move paddle right
             if (PADDLE_X < 0)
                 PADDLE_X <= 0;
             else if (PADDLE_X > (640 - PADDLE_WIDTH))
@@ -102,7 +106,7 @@ module VGA
         end
         else if (count < prev_count) 
         begin
-            PADDLE_X <= PADDLE_X - 2;  // Move paddle left
+            PADDLE_X <= PADDLE_X - 3;  // Move paddle left
             if (PADDLE_X < 0)
                 PADDLE_X <= 640 - PADDLE_WIDTH;
             else if (PADDLE_X > (640 - PADDLE_WIDTH))
@@ -121,27 +125,36 @@ module VGA
             BALL_Y <= BALL_Y + BALL_VY;
 
             // bounce off left/right walls
-            if (BALL_X <= 0 || BALL_X + BALL_SIZE >= 640) begin
+            if (BALL_X <= 0 || BALL_X + BALL_SIZE >= 640) 
+            begin
                 BALL_VX <= -BALL_VX;
                 if (BALL_X <= 0)
                     BALL_X <= BALL_X + 1;
 
                 if (BALL_X + BALL_SIZE >= 640)
                     BALL_X <= BALL_X - 1;
-                
-                
             end
 
-            // bounce off top wall
-            if (BALL_Y <= 0) 
+            // bounce off top wall/bottom (reset)
+            if (BALL_Y <= 0 || BALL_Y + BALL_SIZE >= 480) 
             begin
                 BALL_VY <= -BALL_VY;
-                BALL_Y <= BALL_Y + 1;
-                BALL_X <= BALL_X + 1;
+                if (BALL_Y <= 0)
+                    BALL_Y <= BALL_Y + 1;
+                if (BALL_Y + BALL_SIZE >= 480)
+                begin
+                    BALL_VY <= -1;
+                    BALL_VX <= -1;
+                    BALL_Y <= 240;
+                    BALL_X <= 320;
+                    scoretop <= scoretop + 1;
+                end
 
             end
 
-            if ((BALL_Y + BALL_SIZE >= PADDLE_Y) && (BALL_Y + BALL_SIZE <= PADDLE_Y + PADDLE_HEIGHT) && (BALL_X + BALL_SIZE > PADDLE_X) && (BALL_X < PADDLE_X + PADDLE_WIDTH)) begin
+
+            if ((BALL_Y + BALL_SIZE >= PADDLE_Y) && (BALL_Y + BALL_SIZE <= PADDLE_Y + PADDLE_HEIGHT) && (BALL_X + BALL_SIZE > PADDLE_X) && (BALL_X < PADDLE_X + PADDLE_WIDTH)) 
+            begin
                 BALL_VY <= -BALL_VY;
                 BALL_X <= BALL_X - 1;
                 BALL_Y <= BALL_Y - 1;
@@ -161,10 +174,140 @@ module VGA
     wire ballArea = (CounterX >= BALL_X) && (CounterX < BALL_X + BALL_SIZE) &&
                     (CounterY >= BALL_Y) && (CounterY < BALL_Y + BALL_SIZE);
     
+    // Score display parameters
+    parameter DIGIT_WIDTH = 20;
+    parameter DIGIT_HEIGHT = 30;
+    parameter SCORE_TOP_X = 300;
+    parameter SCORE_TOP_Y = 30;
+    
+    // Function to get digit pattern (5x7 bitmap scaled 4x for 20x28 visible size)
+    function [34:0] get_digit_row;
+        input [3:0] digit;
+        input [2:0] row;
+        case(digit)
+            4'd0: case(row)
+                3'd0: get_digit_row = 5'b01110;
+                3'd1: get_digit_row = 5'b10001;
+                3'd2: get_digit_row = 5'b10011;
+                3'd3: get_digit_row = 5'b10101;
+                3'd4: get_digit_row = 5'b11001;
+                3'd5: get_digit_row = 5'b10001;
+                3'd6: get_digit_row = 5'b01110;
+            endcase
+            4'd1: case(row)
+                3'd0: get_digit_row = 5'b00100;
+                3'd1: get_digit_row = 5'b01100;
+                3'd2: get_digit_row = 5'b00100;
+                3'd3: get_digit_row = 5'b00100;
+                3'd4: get_digit_row = 5'b00100;
+                3'd5: get_digit_row = 5'b00100;
+                3'd6: get_digit_row = 5'b01110;
+            endcase
+            4'd2: case(row)
+                3'd0: get_digit_row = 5'b01110;
+                3'd1: get_digit_row = 5'b10001;
+                3'd2: get_digit_row = 5'b00001;
+                3'd3: get_digit_row = 5'b00110;
+                3'd4: get_digit_row = 5'b01000;
+                3'd5: get_digit_row = 5'b10000;
+                3'd6: get_digit_row = 5'b11111;
+            endcase
+            4'd3: case(row)
+                3'd0: get_digit_row = 5'b11111;
+                3'd1: get_digit_row = 5'b00010;
+                3'd2: get_digit_row = 5'b00100;
+                3'd3: get_digit_row = 5'b00110;
+                3'd4: get_digit_row = 5'b00001;
+                3'd5: get_digit_row = 5'b10001;
+                3'd6: get_digit_row = 5'b01110;
+            endcase
+            4'd4: case(row)
+                3'd0: get_digit_row = 5'b00010;
+                3'd1: get_digit_row = 5'b00110;
+                3'd2: get_digit_row = 5'b01010;
+                3'd3: get_digit_row = 5'b10010;
+                3'd4: get_digit_row = 5'b11111;
+                3'd5: get_digit_row = 5'b00010;
+                3'd6: get_digit_row = 5'b00010;
+            endcase
+            4'd5: case(row)
+                3'd0: get_digit_row = 5'b11111;
+                3'd1: get_digit_row = 5'b10000;
+                3'd2: get_digit_row = 5'b11110;
+                3'd3: get_digit_row = 5'b00001;
+                3'd4: get_digit_row = 5'b00001;
+                3'd5: get_digit_row = 5'b10001;
+                3'd6: get_digit_row = 5'b01110;
+            endcase
+            4'd6: case(row)
+                3'd0: get_digit_row = 5'b00110;
+                3'd1: get_digit_row = 5'b01000;
+                3'd2: get_digit_row = 5'b10000;
+                3'd3: get_digit_row = 5'b11110;
+                3'd4: get_digit_row = 5'b10001;
+                3'd5: get_digit_row = 5'b10001;
+                3'd6: get_digit_row = 5'b01110;
+            endcase
+            4'd7: case(row)
+                3'd0: get_digit_row = 5'b11111;
+                3'd1: get_digit_row = 5'b00001;
+                3'd2: get_digit_row = 5'b00010;
+                3'd3: get_digit_row = 5'b00100;
+                3'd4: get_digit_row = 5'b01000;
+                3'd5: get_digit_row = 5'b01000;
+                3'd6: get_digit_row = 5'b01000;
+            endcase
+            4'd8: case(row)
+                3'd0: get_digit_row = 5'b01110;
+                3'd1: get_digit_row = 5'b10001;
+                3'd2: get_digit_row = 5'b10001;
+                3'd3: get_digit_row = 5'b01110;
+                3'd4: get_digit_row = 5'b10001;
+                3'd5: get_digit_row = 5'b10001;
+                3'd6: get_digit_row = 5'b01110;
+            endcase
+            4'd9: case(row)
+                3'd0: get_digit_row = 5'b01110;
+                3'd1: get_digit_row = 5'b10001;
+                3'd2: get_digit_row = 5'b10001;
+                3'd3: get_digit_row = 5'b01111;
+                3'd4: get_digit_row = 5'b00001;
+                3'd5: get_digit_row = 5'b00010;
+                3'd6: get_digit_row = 5'b01100;
+            endcase
+            default: get_digit_row = 5'b00000;
+        endcase
+    endfunction
+    
+    // Score display logic
+    wire [3:0] score_digit_tens = scoretop / 10;
+    wire [3:0] score_digit_ones = scoretop % 10;
+    
+    // Check if we're in score display area
+    wire in_score_tens = (CounterX >= SCORE_TOP_X) && (CounterX < SCORE_TOP_X + DIGIT_WIDTH) &&
+                         (CounterY >= SCORE_TOP_Y) && (CounterY < SCORE_TOP_Y + DIGIT_HEIGHT);
+    wire in_score_ones = (CounterX >= SCORE_TOP_X + DIGIT_WIDTH + 5) && (CounterX < SCORE_TOP_X + DIGIT_WIDTH + 5 + DIGIT_WIDTH) &&
+                         (CounterY >= SCORE_TOP_Y) && (CounterY < SCORE_TOP_Y + DIGIT_HEIGHT);
+    
+    // Get pixel position within digit
+    wire [4:0] digit_x_tens = (CounterX - SCORE_TOP_X) / 4;
+    wire [4:0] digit_y_tens = (CounterY - SCORE_TOP_Y) / 4;
+    wire [4:0] digit_x_ones = (CounterX - (SCORE_TOP_X + DIGIT_WIDTH + 5)) / 4;
+    wire [4:0] digit_y_ones = (CounterY - SCORE_TOP_Y) / 4;
+    
+    // Get digit patterns
+    wire [4:0] tens_row = get_digit_row(score_digit_tens, digit_y_tens[2:0]);
+    wire [4:0] ones_row = get_digit_row(score_digit_ones, digit_y_ones[2:0]);
+    
+    // Check if pixel should be on for each digit
+    wire tens_pixel = in_score_tens && (digit_y_tens < 7) && tens_row[4 - digit_x_tens[2:0]];
+    wire ones_pixel = in_score_ones && (digit_y_ones < 7) && ones_row[4 - digit_x_ones[2:0]];
+    wire score_on = tens_pixel || ones_pixel;
+    
     // Combine paddle and ball rendering (both white on black)
     wire paddle_on = inDisplayArea && onPaddle;
     wire ball_on   = inDisplayArea && ballArea;
-    wire object_on = paddle_on || ball_on;
+    wire object_on = paddle_on || ball_on || score_on;
 
     assign VGA_R = object_on ? 4'b1111 : 4'b0000;
     assign VGA_G = object_on ? 4'b1111 : 4'b0000;
