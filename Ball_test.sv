@@ -4,6 +4,8 @@ module VGA
     input logic clk,               // 25.175 MHz pixel clock for 640x480 @ 60Hz
     input logic quadA,         // Encoder channel A
     input logic quadB,        // Encoder channel B
+    input logic quadC,
+    input logic quadD,
     output logic VGA_R_0,
     output logic VGA_R_1,
     output logic VGA_R_2,
@@ -30,8 +32,10 @@ module VGA
     reg [9:0] CounterY;
     wire CounterXmaxed = (CounterX == 799);
 
-    logic [7:0] count;
-    logic [7:0] prev_count;
+    logic [7:0] count1;
+    logic [7:0] prev_count1;
+    logic [7:0] count2;
+    logic [7:0] prev_count2;
 
     // Define visible area - colors should only be output during active video
     wire inDisplayArea = (CounterX < 640) && (CounterY < 480);
@@ -39,8 +43,11 @@ module VGA
     // Paddle parameters (Pong-style vertical bar)
     parameter PADDLE_WIDTH = 15;    // Width of paddle in pixels
     parameter PADDLE_HEIGHT = 100;  // Height of paddle in pixels
-    parameter PADDLE_X = 20;        // X position (left side)
-    reg [9:0] PADDLE_Y = 190;       // Y position (centered at 240, minus half height)
+    parameter PADDLE_X1 = 20;        // X position (left side)
+    reg [9:0] PADDLE_Y1 = 190;       // Y position (centered at 240, minus half height)
+    parameter PADDLE_X2 = 605;        // X position (right side)
+    reg [9:0] PADDLE_Y2 = 190;       // Y position (centered at 240, minus half height)
+
 
     //Ball parameters
     parameter BALL_SIZE = 20;
@@ -60,9 +67,15 @@ module VGA
         .clk(clk),
         .quadA(quadA),
         .quadB(quadB),
-        .count(count)
+        .count(count1)
     );
 
+    encoder uut2 (
+        .clk(clk),
+        .quadA(quadC),
+        .quadB(quadD),
+        .count(count2)
+    );
     
     // 4-bit color outputs
     wire [3:0] VGA_R;
@@ -93,24 +106,53 @@ module VGA
         vga_HS <= (CounterX >= 656) && (CounterX < 752);  // 96 clock sync pulse
         vga_VS <= (CounterY >= 490) && (CounterY < 492);  // 2 line sync pulse
 
-        prev_count <= count;
-        if (count > prev_count) 
+        prev_count1 <= count1;
+        if (count1 > prev_count1) 
         begin
-            PADDLE_Y <= PADDLE_Y - 3;  // Move paddle up
-            if (PADDLE_Y < 0)
-                PADDLE_Y <= 0;
-            else if (PADDLE_Y > (480 - PADDLE_HEIGHT ))
-                PADDLE_Y <= 480 - PADDLE_HEIGHT ;
+            PADDLE_Y1 <= PADDLE_Y1 - 3;  // Move paddle up
+            if (PADDLE_Y1 < 0)
+                PADDLE_Y1 <= 0;
+            else if (PADDLE_Y1 > (480 - PADDLE_HEIGHT ))
+                PADDLE_Y1 <= 480 - PADDLE_HEIGHT ;
+            //led_green <= 1'b0;  // Turn on green LED for up
+            //led_red <= 1'b1;
+        end
+        else if (count1 < prev_count1) 
+        begin
+            PADDLE_Y1 <= PADDLE_Y1 + 3;  // Move paddle down
+            if (PADDLE_Y1 < 0)
+                PADDLE_Y1 <= 480 - PADDLE_HEIGHT;
+            else if (PADDLE_Y1 > (480 - PADDLE_HEIGHT))
+                PADDLE_Y1 <= 0;
+            //led_green <= 1'b1;  // Turn off green LED
+            //led_red <= 1'b0;
+        end
+    end
+
+    always @(posedge clk)
+    begin
+        
+        vga_HS <= (CounterX >= 656) && (CounterX < 752);  // 96 clock sync pulse
+        vga_VS <= (CounterY >= 490) && (CounterY < 492);  // 2 line sync pulse
+
+        prev_count2 <= count2;
+        if (count2 > prev_count2) 
+        begin
+            PADDLE_Y2 <= PADDLE_Y2 - 3;  // Move paddle up
+            if (PADDLE_Y2 < 0)
+                PADDLE_Y2 <= 0;
+            else if (PADDLE_Y2 > (480 - PADDLE_HEIGHT ))
+                PADDLE_Y2 <= 480 - PADDLE_HEIGHT ;
             led_green <= 1'b0;  // Turn on green LED for up
             led_red <= 1'b1;
         end
-        else if (count < prev_count) 
+        else if (count2 < prev_count2) 
         begin
-            PADDLE_Y <= PADDLE_Y + 3;  // Move paddle down
-            if (PADDLE_Y < 0)
-                PADDLE_Y <= 0;
-            else if (PADDLE_Y > (480 - PADDLE_HEIGHT))
-                PADDLE_Y <= 480 - PADDLE_HEIGHT;
+            PADDLE_Y2 <= PADDLE_Y2 + 3;  // Move paddle down
+            if (PADDLE_Y2 < 0)
+                PADDLE_Y2 <= 480 - PADDLE_HEIGHT;
+            else if (PADDLE_Y2 > (480 - PADDLE_HEIGHT))
+                PADDLE_Y2 <= 0;
 
             led_green <= 1'b1;  // Turn off green LED
             led_red <= 1'b0;
@@ -162,13 +204,25 @@ module VGA
 
 
             // Collision with left paddle
-            if ((BALL_X <= PADDLE_X + PADDLE_WIDTH) && (BALL_X + BALL_SIZE >= PADDLE_X) && (BALL_Y + BALL_SIZE > PADDLE_Y) && (BALL_Y < PADDLE_Y + PADDLE_HEIGHT)) 
+            if ((BALL_X <= PADDLE_X1 + PADDLE_WIDTH) && (BALL_X + BALL_SIZE >= PADDLE_X1) && (BALL_Y + BALL_SIZE > PADDLE_Y1) && (BALL_Y < PADDLE_Y1 + PADDLE_HEIGHT)) 
             begin
-                BALL_VX <= -BALL_VX;
+                BALL_VX <= (BALL_VX + scoretop);
                 BALL_X <= BALL_X + 1;
                 BALL_Y <= BALL_Y - 1;
                 scoretop <= scoretop + 1;
+
             end
+            // Collision with right paddle
+            if ((BALL_X + BALL_SIZE >= PADDLE_X2) && (BALL_X <= PADDLE_X2 + PADDLE_WIDTH) && (BALL_Y + BALL_SIZE > PADDLE_Y2) && (BALL_Y < PADDLE_Y2 + PADDLE_HEIGHT)) 
+            begin
+                BALL_VX <= -(BALL_VX + scoretop);
+                BALL_X <= BALL_X - 1;
+                BALL_Y <= BALL_Y - 1;
+                scoretop <= scoretop + 1;
+
+            end
+
+
         end
     end
     
@@ -178,8 +232,11 @@ module VGA
     
     
     // Check if current pixel is on the paddle
-    wire onPaddle = (CounterX >= PADDLE_X) && (CounterX < PADDLE_X + PADDLE_WIDTH) &&
-                    (CounterY >= PADDLE_Y) && (CounterY < PADDLE_Y + PADDLE_HEIGHT);
+    wire onPaddle = (CounterX >= PADDLE_X1) && (CounterX < PADDLE_X1 + PADDLE_WIDTH) &&
+                    (CounterY >= PADDLE_Y1) && (CounterY < PADDLE_Y1 + PADDLE_HEIGHT);
+                    
+    wire onPaddle2 =(CounterX >= PADDLE_X2) && (CounterX < PADDLE_X2 + PADDLE_WIDTH) &&
+                    (CounterY >= PADDLE_Y2) && (CounterY < PADDLE_Y2 + PADDLE_HEIGHT);
 
     wire ballArea = (CounterX >= BALL_X) && (CounterX < BALL_X + BALL_SIZE) &&
                     (CounterY >= BALL_Y) && (CounterY < BALL_Y + BALL_SIZE);
@@ -220,8 +277,9 @@ module VGA
     
     // Combine paddle and ball rendering (both white on black)
     wire paddle_on = inDisplayArea && onPaddle;
+    wire paddle2_on = inDisplayArea && onPaddle2;
     wire ball_on   = inDisplayArea && ballArea;
-    wire object_on = paddle_on || ball_on || score_on;
+    wire object_on = paddle_on || ball_on || score_on || paddle2_on;
 
     assign VGA_R = object_on ? 4'b1111 : 4'b0000;
     assign VGA_G = object_on ? 4'b1111 : 4'b0000;
