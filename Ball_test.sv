@@ -191,6 +191,59 @@ module VGA
     parameter SCORE_TOP_Y = 30;
     
     // Function to get digit pattern (5x7 bitmap scaled 4x for 20x28 visible size)
+
+    
+    // Score display logic
+    wire [3:0] score_digit_tens = scoretop / 10;
+    wire [3:0] score_digit_ones = scoretop % 10;
+    
+    // Check if we're in score display area
+    wire in_score_tens = (CounterX >= SCORE_TOP_X) && (CounterX < SCORE_TOP_X + DIGIT_WIDTH) &&
+                         (CounterY >= SCORE_TOP_Y) && (CounterY < SCORE_TOP_Y + DIGIT_HEIGHT);
+    wire in_score_ones = (CounterX >= SCORE_TOP_X + DIGIT_WIDTH + 5) && (CounterX < SCORE_TOP_X + DIGIT_WIDTH + 5 + DIGIT_WIDTH) &&
+                         (CounterY >= SCORE_TOP_Y) && (CounterY < SCORE_TOP_Y + DIGIT_HEIGHT);
+    
+    // Get pixel position within digit
+    wire [4:0] digit_x_tens = (CounterX - SCORE_TOP_X) / 4;
+    wire [4:0] digit_y_tens = (CounterY - SCORE_TOP_Y) / 4;
+    wire [4:0] digit_x_ones = (CounterX - (SCORE_TOP_X + DIGIT_WIDTH + 5)) / 4;
+    wire [4:0] digit_y_ones = (CounterY - SCORE_TOP_Y) / 4;
+    
+    // Get digit patterns
+    wire [4:0] tens_row = get_digit_row(score_digit_tens, digit_y_tens[2:0]);
+    wire [4:0] ones_row = get_digit_row(score_digit_ones, digit_y_ones[2:0]);
+    
+    // Check if pixel should be on for each digit
+    wire tens_pixel = in_score_tens && (digit_y_tens < 7) && tens_row[4 - digit_x_tens[2:0]];
+    wire ones_pixel = in_score_ones && (digit_y_ones < 7) && ones_row[4 - digit_x_ones[2:0]];
+    wire score_on = tens_pixel || ones_pixel;
+    
+    // Combine paddle and ball rendering (both white on black)
+    wire paddle_on = inDisplayArea && onPaddle;
+    wire ball_on   = inDisplayArea && ballArea;
+    wire object_on = paddle_on || ball_on || score_on;
+
+    assign VGA_R = object_on ? 4'b1111 : 4'b0000;
+    assign VGA_G = object_on ? 4'b1111 : 4'b0000;
+    assign VGA_B = object_on ? 4'b1111 : 4'b0000;
+
+    
+    // Assign individual color bits to output pins
+    assign VGA_R_0 = VGA_R[0];
+    assign VGA_R_1 = VGA_R[1];
+    assign VGA_R_2 = VGA_R[2];
+    assign VGA_R_3 = VGA_R[3];
+    
+    assign VGA_G_0 = VGA_G[0];
+    assign VGA_G_1 = VGA_G[1];
+    assign VGA_G_2 = VGA_G[2];
+    assign VGA_G_3 = VGA_G[3];
+    
+    assign VGA_B_0 = VGA_B[0];
+    assign VGA_B_1 = VGA_B[1];
+    assign VGA_B_2 = VGA_B[2];
+    assign VGA_B_3 = VGA_B[3];
+
     function [34:0] get_digit_row;
         input [3:0] digit;
         input [2:0] row;
@@ -288,56 +341,5 @@ module VGA
             default: get_digit_row = 5'b00000;
         endcase
     endfunction
-    
-    // Score display logic
-    wire [3:0] score_digit_tens = scoretop / 10;
-    wire [3:0] score_digit_ones = scoretop % 10;
-    
-    // Check if we're in score display area
-    wire in_score_tens = (CounterX >= SCORE_TOP_X) && (CounterX < SCORE_TOP_X + DIGIT_WIDTH) &&
-                         (CounterY >= SCORE_TOP_Y) && (CounterY < SCORE_TOP_Y + DIGIT_HEIGHT);
-    wire in_score_ones = (CounterX >= SCORE_TOP_X + DIGIT_WIDTH + 5) && (CounterX < SCORE_TOP_X + DIGIT_WIDTH + 5 + DIGIT_WIDTH) &&
-                         (CounterY >= SCORE_TOP_Y) && (CounterY < SCORE_TOP_Y + DIGIT_HEIGHT);
-    
-    // Get pixel position within digit
-    wire [4:0] digit_x_tens = (CounterX - SCORE_TOP_X) / 4;
-    wire [4:0] digit_y_tens = (CounterY - SCORE_TOP_Y) / 4;
-    wire [4:0] digit_x_ones = (CounterX - (SCORE_TOP_X + DIGIT_WIDTH + 5)) / 4;
-    wire [4:0] digit_y_ones = (CounterY - SCORE_TOP_Y) / 4;
-    
-    // Get digit patterns
-    wire [4:0] tens_row = get_digit_row(score_digit_tens, digit_y_tens[2:0]);
-    wire [4:0] ones_row = get_digit_row(score_digit_ones, digit_y_ones[2:0]);
-    
-    // Check if pixel should be on for each digit
-    wire tens_pixel = in_score_tens && (digit_y_tens < 7) && tens_row[4 - digit_x_tens[2:0]];
-    wire ones_pixel = in_score_ones && (digit_y_ones < 7) && ones_row[4 - digit_x_ones[2:0]];
-    wire score_on = tens_pixel || ones_pixel;
-    
-    // Combine paddle and ball rendering (both white on black)
-    wire paddle_on = inDisplayArea && onPaddle;
-    wire ball_on   = inDisplayArea && ballArea;
-    wire object_on = paddle_on || ball_on || score_on;
-
-    assign VGA_R = object_on ? 4'b1111 : 4'b0000;
-    assign VGA_G = object_on ? 4'b1111 : 4'b0000;
-    assign VGA_B = object_on ? 4'b1111 : 4'b0000;
-
-    
-    // Assign individual color bits to output pins
-    assign VGA_R_0 = VGA_R[0];
-    assign VGA_R_1 = VGA_R[1];
-    assign VGA_R_2 = VGA_R[2];
-    assign VGA_R_3 = VGA_R[3];
-    
-    assign VGA_G_0 = VGA_G[0];
-    assign VGA_G_1 = VGA_G[1];
-    assign VGA_G_2 = VGA_G[2];
-    assign VGA_G_3 = VGA_G[3];
-    
-    assign VGA_B_0 = VGA_B[0];
-    assign VGA_B_1 = VGA_B[1];
-    assign VGA_B_2 = VGA_B[2];
-    assign VGA_B_3 = VGA_B[3];
 
 endmodule
