@@ -206,8 +206,13 @@ module VGA
             // Collision with left paddle
             if ((BALL_X <= PADDLE_X1 + PADDLE_WIDTH) && (BALL_X + BALL_SIZE >= PADDLE_X1) && (BALL_Y + BALL_SIZE > PADDLE_Y1) && (BALL_Y < PADDLE_Y1 + PADDLE_HEIGHT)) 
             begin
-                BALL_VX <= (BALL_VX + scoretop);
-                BALL_X <= BALL_X + 1;
+                if (scoretop == 0)
+                    BALL_VX <= 1;
+                else if ( scoretop > 8)
+                    BALL_VX <= 8;
+                else
+                    BALL_VX <= scoretop;
+                BALL_X <= BALL_X + scoretop + 1;
                 BALL_Y <= BALL_Y - 1;
                 scoretop <= scoretop + 1;
 
@@ -215,8 +220,13 @@ module VGA
             // Collision with right paddle
             if ((BALL_X + BALL_SIZE >= PADDLE_X2) && (BALL_X <= PADDLE_X2 + PADDLE_WIDTH) && (BALL_Y + BALL_SIZE > PADDLE_Y2) && (BALL_Y < PADDLE_Y2 + PADDLE_HEIGHT)) 
             begin
-                BALL_VX <= -(BALL_VX + scoretop);
-                BALL_X <= BALL_X - 1;
+                if (scoretop == 0)
+                    BALL_VX <= -1;
+                else if ( scoretop >8)
+                    BALL_VX <= -8;
+                else
+                    BALL_VX <= -scoretop;
+                BALL_X <= BALL_X - scoretop - 1;
                 BALL_Y <= BALL_Y - 1;
                 scoretop <= scoretop + 1;
 
