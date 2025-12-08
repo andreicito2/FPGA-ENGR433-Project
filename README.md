@@ -6,5 +6,4 @@ To Do:
     - VGA https://digilent.com/reference/pmod/pmodvga/start
     - Pong
     - encoder https://digilent.com/reference/pmod/pmodenc/start
-    - HDMI
     - Help https://www.fpga4fun.com/ 

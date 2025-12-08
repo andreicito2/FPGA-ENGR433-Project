@@ -1,5 +1,5 @@
 //code to test only ball physics
-module VGA 
+module Pong 
 (
     input logic clk,               // 25.175 MHz pixel clock for 640x480 @ 60Hz
     input logic quadA,         // Encoder channel A
