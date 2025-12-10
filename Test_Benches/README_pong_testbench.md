@@ -72,20 +72,6 @@ The testbench generates a VCD file (`pong_tb.vcd`) that you can view to see:
 - LED outputs (led_green, led_red)
 - Internal signals (CounterX, CounterY, paddle positions, ball position, etc.)
 
-## Local Simulation (Alternative):
-
-If you want to run locally with Icarus Verilog:
-
-```bash
-# Compile
-iverilog -g2012 -o pong_sim encoder.sv pong.sv pong_tb.sv
-
-# Run simulation
-vvp pong_sim
-
-# View waveforms (requires GTKWave)
-gtkwave pong_tb.vcd
-```
 
 ## Notes:
 

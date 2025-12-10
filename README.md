@@ -1,23 +1,44 @@
 # FPGA-ENGR433-Project: Pong
-This is our Project for Digital Design. It is a pong game written in SystemVerilog for a pico2-ice board using a iCE40UP5K FPGA and 640x480 @ 60Hz VGA signal to display the game. 
-A custom version on of this board was made for this class so pins may differ. 
-The Makefile and wtih OSS CAD Suite has used in the makeing of the .bin file
+This is our Project for ENGR 433 Digital Design at Walla Walla Univeristy. It is a pong game written in SystemVerilog for a pico2-ice board using an iCE40UP5K FPGA and 640x480 @ 60Hz VGA signal to display the game.
 
-The needed material for this project is:
- - pioc2-ice
- - VGA Pmod or other connection (https://digilent.com/reference/pmod/pmodvga/start)
- - 2 Rotary Encoder Pmod or similar (https://digilent.com/reference/pmod/pmodenc/start)
- - 640x480 @ 60Hz VGA connecting monitor
+The game is meant for two players with the goal of keeping the ball bouncing between the two paddles. The higher the score, the more speed it gets until a score of 8 when it maxes out. If the ball hits the right or left side of the screen, it will reset the score to 0 and spawn in the middle of the screen. At the top and bottom of the screen, the ball bounces off in the opposite direction. 
 
-What each file does:
- - Ball_test.sv: Is a test file use for ball logic
- - Encoder_Test.sv: A simiple test with LED to check if the encoder state machine is working correctly
- - encoder.sv: The encoder modlue used in both Encoder_Test, Ball_test, and Pong
- - Makefile: Use with OSS CAD SUite to make .bin files. Makes a .bin for Pong and Encoder module
- - pico2-ice.pcf: the .pcf file pico2-ice board
- - Pong.bin: Main file to be upload to board to run the game
- - pong.sv: Main system verilog file with VGA code and logic 
- - VGA.sv: Code to test a VGA connection is working 
+A custom version of this board was made for this class, so pins may differ.
+The Makefile with OSS CAD Suite is used in the making of the .bin files.
 
-Resources
- - Help https://www.fpga4fun.com/ 
+## Required Materials
+
+- pico2-ice FPGA board (iCE40UP5K)
+- VGA Pmod or other VGA connection
+- 2 Rotary Encoder Pmods or similar
+- Monitor with VGA cable 
+
+## File Descriptions
+
+### Source Files
+- **Ball_test.sv**: Test file used for ball logic and physics testing
+- **Encoder_Test.sv**: Simple test with LED to check if the encoder state machine is working correctly
+- **encoder.sv**: The encoder module used in Encoder_Test, Ball_test, and Pong (quadrature decoder)
+- **pong.sv**: Main SystemVerilog file with VGA timing, game logic, ball physics, and paddle control
+- **VGA.sv**: Test code to verify VGA connection is working
+
+### Configuration & Build Files
+- **Makefile**: Used with OSS CAD Suite to synthesize and create .bin files. Currently configured for VGA module (change TOP_MODULE variable for different builds)
+- **pico2-ice.pcf**: Pin constraint file for the pico2-ice board
+
+### Binary Files
+- **Pong.bin**: Main bitstream file to upload to the board to run the game
+- **Test_Bins/**: Directory containing test binaries (Ball_test.bin, encoder_test.bin, VGA.bin)
+
+### Test Files
+- **Test_Benches/**: Contains simulation testbenches
+  - **pong_tb.sv**: SystemVerilog testbench for the Pong module
+  - **README_pong_testbench.md**: Documentation for running the testbench on EDA Playground or locally 
+
+
+## Resources
+
+- https://www.fpga4fun.com/ - FPGA tutorials and examples
+- https://digilent.com/reference/pmod/pmodvga/start - VGA Pmod documentation
+- https://digilent.com/reference/pmod/pmodenc/start - Encoder Pmod documentation
+- https://github.com/tinyvision-ai-inc/pico2-ice - pico2-ice board documentation
