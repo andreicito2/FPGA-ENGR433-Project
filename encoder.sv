@@ -11,8 +11,10 @@ module encoder (
         quadB_d <= { quadB_d[1:0], quadB };        
     end
 
-    logic count_enable = quadA_d[1] ^ quadA_d[2] ^ quadB_d[1]  ^ quadB_d[2];
-    logic count_dir = quadA_d[1] ^ quadB_d[2];
+    wire count_enable;
+    wire count_dir;
+    assign count_enable = quadA_d[1] ^ quadA_d[2] ^ quadB_d[1] ^ quadB_d[2];
+    assign count_dir = quadA_d[1] ^ quadB_d[2];
 
     reg [7:0] count_reg;
     always_ff @( posedge clk ) begin
