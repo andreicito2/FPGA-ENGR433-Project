@@ -143,8 +143,8 @@ module Pong
                 PADDLE_Y2 <= 0;
             else if (PADDLE_Y2 > (480 - PADDLE_HEIGHT ))
                 PADDLE_Y2 <= 480 - PADDLE_HEIGHT ;
-            led_green <= 1'b0;  // Turn on green LED for up
-            led_red <= 1'b1;
+            //led_green <= 1'b0;  // Turn on green LED for up
+            //led_red <= 1'b1;
         end
         else if (count2 < prev_count2) 
         begin
@@ -154,8 +154,8 @@ module Pong
             else if (PADDLE_Y2 > (480 - PADDLE_HEIGHT))
                 PADDLE_Y2 <= 0;
 
-            led_green <= 1'b1;  // Turn off green LED
-            led_red <= 1'b0;
+            //led_green <= 1'b1;  // Turn off green LED
+            //led_red <= 1'b0;
         end
     end
 
