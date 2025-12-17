@@ -119,3 +119,5 @@ To upload the bitstream to the pico2-ice board:
 - https://digilent.com/reference/pmod/pmodvga/start - VGA Pmod documentation
 - https://digilent.com/reference/pmod/pmodenc/start - Encoder Pmod documentation
 - https://github.com/frohro/pico2-ice - pico2-ice board documentation
+- http://www.tinyvga.com/vga-timing/640x480@60Hz - Understanding VGA timing and clock
+- https://projectf.io/posts/video-timings-vga-720p-1080p - Image reference
