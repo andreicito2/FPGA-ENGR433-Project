@@ -14,7 +14,11 @@ The Makefile with OSS CAD Suite is used in the making of the .bin files.
 - Monitor with VGA cable
 - Jumper wires or Pmod cables
 
+
 ## Hardware Setup
+
+![alt text](Built_Device.jpeg "Title")
+
 
 ### Connecting the Pmods
 
